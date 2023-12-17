@@ -7,6 +7,10 @@ import './App.css';
  * State declaration for <App />
  */
 interface IState {
+
+  //New variable added that indicates when a graph should be shown
+  showGraph : boolean;
+
   data: ServerRespond[],
 }
 
@@ -21,6 +25,9 @@ class App extends Component<{}, IState> {
     this.state = {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
+
+      //Variable initially set to false, as initially we do not want the graph to be shown
+      showGraph:false,
       data: [],
     };
   }
@@ -29,6 +36,9 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
+
+    //Renders only when showGraoh var is set to true, that is when the button is pressed
+    if(this.state.showGraph)
     return (<Graph data={this.state.data}/>)
   }
 
@@ -36,11 +46,24 @@ class App extends Component<{}, IState> {
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
+    let x=0;
+    const intervalId =setInterval(() => {
     DataStreamer.getData((serverResponds: ServerRespond[]) => {
       // Update the state by creating a new array of data that consists of
       // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
+      //Including the above factors, we also every time(a new data is fetched) show the graph, so showGraph:true
+      //May be there are only 1000 data to be fetched, hence after x becomes 1000, or to say
+      //After data is fetched for 1000 times, we stop the interval
+      //We stop the loop.
+      this.setState({
+         data: serverResponds,
+      showGraph:true,
+     });
     });
+    x++;
+    if(x>1000)
+    clearInterval(intervalId);
+  },100);
   }
 
   /**

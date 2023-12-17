@@ -14,7 +14,9 @@ interface IProps {
  * Perspective library adds load to HTMLElement prototype.
  * This interface acts as a wrapper for Typescript compiler.
  */
-interface PerspectiveViewerElement {
+
+//Why do we extend HTMLElement??
+interface PerspectiveViewerElement extends HTMLElement {
   load: (table: Table) => void,
 }
 
@@ -26,13 +28,35 @@ class Graph extends Component<IProps, {}> {
   // Perspective table
   table: Table | undefined;
 
+  //Render function is not used anywhere? So WTf?
   render() {
     return React.createElement('perspective-viewer');
   }
 
   componentDidMount() {
     // Get element to attach the table from the DOM.
-    const elem: PerspectiveViewerElement = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+    const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+
+    elem.setAttribute('view', 'y_line');
+  //Type of graph --> 'view' should be a y_line which is a continuous line graph
+
+    elem.setAttribute('row-pivots','["timestamp"]');
+    //The x axis should have time stamp values, like dates, like for different values of timestamps, have the points
+    //to be plotted
+
+    elem.setAttribute('column-pivots','["stock"]');
+    //Two different categories agains which lines have to be plotted
+
+    elem.setAttribute('columns','["top_ask_price"]');
+    //points of which attribute has to be plotted
+
+    elem.setAttribute('aggregates',`{
+      "stock" : "distinct count",
+      "top_ask_price" : "avg",
+      "top_bid_price" : "avg",
+      "timestamp" : "distinct count"
+  }`);
+  //did not understand
 
     const schema = {
       stock: 'string',
@@ -46,10 +70,11 @@ class Graph extends Component<IProps, {}> {
     }
     if (this.table) {
       // Load the `table` in the `<perspective-viewer>` DOM reference.
-
+      
       // Add more Perspective configurations here.
       elem.load(this.table);
     }
+   
   }
 
   componentDidUpdate() {
